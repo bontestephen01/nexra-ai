@@ -1,0 +1,37 @@
+name: Build NEXRA AI APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Unzip project files
+        run: |
+          mkdir nexra
+          unzip nexra-build-ready-full.zip -d nexra
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Expo CLI
+        run: npm install -g expo-cli eas-cli
+
+      - name: Install dependencies
+        run: |
+          cd nexra
+          npm install
+
+      - name: Build Android APK with Expo
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          cd nexra
+          eas build --platform android --profile preview --non-interactive --no-wait

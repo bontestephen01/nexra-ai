@@ -21,15 +21,22 @@ jobs:
           node-version: 18
 
       - name: Install Expo and EAS CLI
+        run: npm install -g expo-cli eas-cli
+
+      - name: Detect project folder
+        id: detect
         run: |
-          npm install -g expo-cli eas-cli
+          FOLDER=$(find . -type f -name "package.json" -exec dirname {} \; | head -n 1)
+          echo "folder=$FOLDER" >> $GITHUB_OUTPUT
 
       - name: Install dependencies
         run: |
-          if [ -f package.json ]; then npm install; else cd */ && npm install; fi
+          cd ${{ steps.detect.outputs.folder }}
+          npm install
 
       - name: Build Android APK with Expo
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
-          if [ -f package.json ]; then npx eas-cli build --platform android --profile preview --non-interactive --no-wait; else cd */ && npx eas-cli build --platform android --profile preview --non-interactive --no-wait; fi
+          cd ${{ steps.detect.outputs.folder }}
+          npx eas-cli build --platform android --profile preview --non-interactive --no-wait
